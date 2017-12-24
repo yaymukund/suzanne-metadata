@@ -1,0 +1,7 @@
+[package]
+name = "suzanne-metadata"
+version = "0.1.0"
+authors = ["Mukund Lakshman <yaymukund@gmail.com>"]
+publish = false
+
+[dependencies]
