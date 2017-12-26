@@ -5,3 +5,5 @@ authors = ["Mukund Lakshman <yaymukund@gmail.com>"]
 publish = false
 
 [dependencies]
+walkdir = "2.0.1"
+id3 = "0.2.2"
