@@ -1,29 +1,25 @@
 extern crate walkdir;
 extern crate id3;
+extern crate indicatif;
 
 use std::env;
-use walkdir::{DirEntry, WalkDir};
+use indicatif::ProgressBar;
 
 mod track;
-
-fn is_mp3(entry: &DirEntry) -> bool {
-    entry.path().extension().and_then(|ext| ext.to_str()) == Some("mp3")
-}
+mod music_library;
 
 fn main() {
     let music_dir = env::args().nth(1)
         .expect("Please specify a path to the music dir");
 
     let mut i = 0;
-    for entry in WalkDir::new(music_dir) {
+    let music_library = music_library::MusicLibrary::new(music_dir);
+    let progress_bar = ProgressBar::new(music_library.count() as u64);
+
+    for mp3_path in music_library.mp3s() {
         i += 1;
-        let entry = entry.unwrap();
-        if is_mp3(&entry) {
-            let path = entry.path().to_str().unwrap();
-            match track::create_from_path(path, i) {
-                Some(t) => println!("{:?}", t),
-                None => println!("Errored on {}", path),
-            }
-        }
+        progress_bar.inc(1);
+        track::Track::new_from_path(&mp3_path, i);
     }
+    progress_bar.finish();
 }
