@@ -21,5 +21,6 @@ fn main() {
         progress_bar.inc(1);
         track::Track::new_from_path(&mp3_path, i);
     }
+
     progress_bar.finish();
 }

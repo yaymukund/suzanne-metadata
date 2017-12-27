@@ -1,30 +1,27 @@
-use walkdir::{DirEntry, Error, WalkDir};
+use walkdir::{DirEntry, Error, IntoIter, WalkDir};
+use std::iter::FilterMap;
 
 pub struct MusicLibrary {
-    mp3s: Vec<String>,
+    path: String,
 }
 
 impl MusicLibrary {
     pub fn new(path: String) -> MusicLibrary {
-        let mp3s: Vec<String> = WalkDir::new(&path).into_iter()
-            .filter_map(get_mp3)
-            .collect();
-
-        MusicLibrary {
-            mp3s,
-        }
+        MusicLibrary { path }
     }
 
     pub fn count(&self) -> usize {
-        self.mp3s.len()
+        self.mp3s().count()
     }
 
-    pub fn mp3s(&self) -> &Vec<String> {
-        &self.mp3s
+    pub fn mp3s(&self) -> FilterMap<IntoIter, fn(Result<DirEntry, Error>) -> Option<String>> {
+        WalkDir::new(&self.path)
+            .into_iter()
+            .filter_map(mp3_path)
     }
 }
 
-fn get_mp3(entry_result: Result<DirEntry, Error>) -> Option<String> {
+fn mp3_path(entry_result: Result<DirEntry, Error>) -> Option<String> {
     match entry_result {
         Ok(ref e) if is_mp3(&e) => Some(entry_to_path(&e)),
         _ => None,
