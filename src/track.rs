@@ -1,4 +1,5 @@
 use id3::Tag;
+use std::path::PathBuf;
 
 const DEFAULT_TAG: &'static str = "?";
 
@@ -15,10 +16,11 @@ pub struct Track {
     date: String,
     track_number: String,
     path: String,
+    folder_id: Option<u32>,
 }
 
 impl Track {
-    pub fn new_from_tag(tag: &Tag, path: &str, id: u32) -> Track {
+    pub fn new_from_tag(tag: &Tag, path: PathBuf, id: u32) -> Track {
         Track {
             id,
             title: title(&tag),
@@ -26,17 +28,22 @@ impl Track {
             artist: artist(&tag),
             date: date(&tag),
             track_number: track_number(&tag),
-            path: path.to_string(),
+            path: path.to_str().unwrap().to_string(),
+            folder_id: None,
         }
     }
 
-    pub fn new_from_path(path: &str, id: u32) -> Option<Track> {
-        let tag = match Tag::read_from_path(path) {
+    pub fn new_from_path(path: PathBuf, id: u32) -> Option<Track> {
+        let tag = match Tag::read_from_path(&path) {
             Ok(t) => t,
             Err(_) => return None,
         };
 
         Some(Track::new_from_tag(&tag, path, id))
+    }
+
+    pub fn set_folder_id(&mut self, id: u32) {
+        self.folder_id = Some(id.clone());
     }
 }
 

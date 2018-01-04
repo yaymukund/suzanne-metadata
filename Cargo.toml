@@ -8,3 +8,5 @@ publish = false
 walkdir = "2.0.1"
 id3 = "0.2.2"
 indicatif = "0.8.0"
+filetime = "0.1"
+clap = "2"

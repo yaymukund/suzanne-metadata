@@ -1,26 +1,34 @@
+#[macro_use]
+
+extern crate clap;
 extern crate walkdir;
 extern crate id3;
 extern crate indicatif;
+extern crate filetime;
 
-use std::env;
-use indicatif::ProgressBar;
+use clap::ArgMatches;
 
 mod track;
+mod track_list;
+mod folder;
+mod folder_list;
 mod music_library;
 
 fn main() {
-    let music_dir = env::args().nth(1)
-        .expect("Please specify a path to the music dir");
+    let args = get_args();
+    let music_dir = args.value_of("LIBRARY").unwrap();
+    let mut music_library = music_library::MusicLibrary::new(music_dir.to_string());
+    music_library.initialize();
+}
 
-    let mut i = 0;
-    let music_library = music_library::MusicLibrary::new(music_dir);
-    let progress_bar = ProgressBar::new(music_library.count() as u64);
-
-    for mp3_path in music_library.mp3s() {
-        i += 1;
-        progress_bar.inc(1);
-        track::Track::new_from_path(&mp3_path, i);
-    }
-
-    progress_bar.finish();
+fn get_args<'a>() -> ArgMatches<'a> {
+    clap_app!(app =>
+        (version: "1.0")
+        (author: "Mukund <yaymukund@gmail.com>")
+        (about: "Parses metadata from a directory of music")
+        (@arg LIBRARY: -l --library +required +takes_value "Path to the music directory")
+        (@arg METADATA: -m --metadata +takes_value "Path to the metadata file")
+        (@arg INDEX: -i --index +takes_value "Path to the index metadata file")
+        (@arg OUTPATH: -o --output +takes_value "Path to output directory")
+    ).get_matches()
 }
