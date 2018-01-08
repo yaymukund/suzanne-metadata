@@ -1,10 +1,15 @@
 #[macro_use]
-
 extern crate clap;
+
 extern crate walkdir;
 extern crate id3;
 extern crate indicatif;
 extern crate filetime;
+extern crate serde;
+extern crate serde_json;
+
+#[macro_use]
+extern crate serde_derive;
 
 use clap::ArgMatches;
 

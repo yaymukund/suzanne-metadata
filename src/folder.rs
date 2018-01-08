@@ -1,33 +1,30 @@
 use std::fs;
-use std::path::PathBuf;
+use walkdir::DirEntry;
 use filetime::FileTime;
+use folder_list::FolderList;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Folder {
     id: u32,
-    created_at: FileTime,
+    created_at: u64,
     path: String,
 }
 
 impl Folder {
-    pub fn new(id: u32, path: PathBuf, library_path: &str) -> Folder {
-        let metadata = fs::metadata(&path).unwrap();
-        let relative_path = Folder::relative_path(path, library_path);
-        let created_at = FileTime::from_last_modification_time(&metadata);
+    pub fn new(id: u32, entry: &DirEntry, folder_list: &FolderList) -> Folder {
+        let metadata = fs::metadata(entry.path()).unwrap();
+        let created_at = FileTime::from_last_modification_time(&metadata).seconds_relative_to_1970();
+        let path = folder_list.relative_path_to(entry);
 
         Folder {
             id,
-            path: relative_path,
+            path,
             created_at,
         }
     }
 
-    fn relative_path(path: PathBuf, library_path: &str) -> String {
-        path.strip_prefix(library_path)
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .to_string()
+    pub fn get_path(&self) -> &str {
+        &self.path
     }
 
     pub fn get_id(&self) -> u32 {

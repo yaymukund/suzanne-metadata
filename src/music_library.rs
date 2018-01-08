@@ -2,6 +2,7 @@ use walkdir::{WalkDir, DirEntry};
 use track_list::TrackList;
 use folder_list::FolderList;
 use indicatif::{ProgressBar, ProgressStyle};
+use serde_json::{self, Error};
 
 pub struct MusicLibrary {
     path: String,
@@ -28,6 +29,10 @@ impl MusicLibrary {
     }
 
     fn load_entry(&mut self, entry: DirEntry) {
+        if self.folders.has_entry(&entry) {
+            return;
+        }
+
         let tracks = self.tracks.add_dir_entry(&entry);
         if !tracks.is_empty() {
             let folder = self.folders.add_dir_entry(&entry);
@@ -39,8 +44,7 @@ impl MusicLibrary {
         }
     }
 
-
-    pub fn initialize(&mut self) {
+    pub fn initialize(&mut self) -> Result<(), Error> {
         let entries = self.entries();
         let progress_bar = ProgressBar::new(entries.len() as u64);
         let style = ProgressStyle::default_bar()
@@ -54,5 +58,9 @@ impl MusicLibrary {
         }
 
         progress_bar.finish();
+
+        let serialized = serde_json::to_string(&self.folders)?;
+        println!("{}", serialized);
+        Ok(())
     }
 }
