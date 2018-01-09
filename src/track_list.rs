@@ -1,5 +1,8 @@
+use std::fmt;
 use track::Track;
 use walkdir::{DirEntry, Error, WalkDir};
+use serde::ser::{Serialize, Serializer};
+use serde::de::{Deserialize, Deserializer, SeqAccess, Visitor};
 
 pub struct TrackList {
     tracks: Vec<Track>,
@@ -20,6 +23,11 @@ impl TrackList {
         } else {
             self.empty_slice()
         }
+    }
+
+    pub fn push(&mut self, track: Track) -> &Track {
+        self.tracks.push(track);
+        self.tracks.last().unwrap()
     }
 
     fn add_track_entry(&mut self, entry: &DirEntry) -> &mut[Track] {
@@ -77,4 +85,41 @@ fn is_dir(entry: &DirEntry) -> bool {
 fn is_mp3(entry: &DirEntry) -> bool {
     entry.path().extension()
         .and_then(|ext| ext.to_str()) == Some("mp3")
+}
+
+impl Serialize for TrackList {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where S: Serializer
+    {
+        self.tracks.serialize(serializer)
+    }
+}
+
+struct TrackListVisitor;
+
+impl<'de> Visitor<'de> for TrackListVisitor {
+    type Value = TrackList;
+
+    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        formatter.write_str("a list of tracks")
+    }
+
+    fn visit_seq<S>(self, mut seq: S) -> Result<Self::Value, S::Error>
+            where S: SeqAccess<'de>
+    {
+        let mut track_list = TrackList::new();
+        while let Some(track) = seq.next_element()? {
+            track_list.push(track);
+        }
+
+        Ok(track_list)
+    }
+}
+
+impl<'de> Deserialize<'de> for TrackList {
+    fn deserialize<D>(deserializer: D) -> Result<TrackList, D::Error>
+        where D: Deserializer<'de>
+    {
+        deserializer.deserialize_seq(TrackListVisitor)
+    }
 }

@@ -7,7 +7,7 @@ fn unknown_tag() -> String {
     DEFAULT_TAG.to_string()
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Track {
     id: u32,
     title: String,

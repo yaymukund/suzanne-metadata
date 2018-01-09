@@ -4,6 +4,7 @@ use folder_list::FolderList;
 use indicatif::{ProgressBar, ProgressStyle};
 use serde_json::{self, Error};
 
+#[derive(Serialize, Deserialize)]
 pub struct MusicLibrary {
     path: String,
     tracks: TrackList,
@@ -59,8 +60,7 @@ impl MusicLibrary {
 
         progress_bar.finish();
 
-        let serialized = serde_json::to_string(&self.folders)?;
-        println!("{}", serialized);
+        println!("{}", serde_json::to_string(&self)?);
         Ok(())
     }
 }
