@@ -11,18 +11,15 @@ pub struct FolderList {
 }
 
 impl FolderList {
-    pub fn new(path: &str) -> FolderList {
-        FolderList {
-            path: Some(path.to_string()),
-            folders: Vec::new(),
-        }
-    }
-
-    pub fn without_path() -> FolderList {
+    pub fn new() -> FolderList {
         FolderList {
             path: None,
             folders: Vec::new(),
         }
+    }
+
+    pub fn set_path(&mut self, path: String) {
+        self.path = Some(path);
     }
 
     pub fn push(&mut self, folder: Folder) -> &Folder {
@@ -55,6 +52,10 @@ impl FolderList {
         self.folders.iter()
             .any(|folder| folder.get_path() == path)
     }
+
+    pub fn len(&self) -> usize {
+        self.folders.len()
+    }
 }
 
 struct FolderListVisitor;
@@ -69,7 +70,7 @@ impl<'de> Visitor<'de> for FolderListVisitor {
     fn visit_seq<S>(self, mut seq: S) -> Result<Self::Value, S::Error>
             where S: SeqAccess<'de>
     {
-        let mut folder_list = FolderList::without_path();
+        let mut folder_list = FolderList::new();
         while let Some(folder) = seq.next_element()? {
             folder_list.push(folder);
         }

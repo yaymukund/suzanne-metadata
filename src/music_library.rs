@@ -2,26 +2,35 @@ use walkdir::{WalkDir, DirEntry};
 use track_list::TrackList;
 use folder_list::FolderList;
 use indicatif::{ProgressBar, ProgressStyle};
-use serde_json::{self, Error};
+use serde_json;
+use std::io::Error;
+use std::fs::File;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct MusicLibrary {
-    path: String,
     tracks: TrackList,
     folders: FolderList,
 }
 
 impl MusicLibrary {
-    pub fn new(path: String) -> MusicLibrary {
+    pub fn new() -> MusicLibrary {
         MusicLibrary {
             tracks: TrackList::new(),
-            folders: FolderList::new(&path),
-            path,
+            folders: FolderList::new(),
         }
     }
 
-    fn entries(&self) -> Vec<DirEntry> {
-        WalkDir::new(&self.path)
+    pub fn new_from_file(metadata_file: &str) -> MusicLibrary {
+        let file = File::open(metadata_file).unwrap();
+        serde_json::from_reader(file).unwrap()
+    }
+
+    fn set_path(&mut self, path: String) {
+        self.folders.set_path(path);
+    }
+
+    fn entries_in_path(&self, path: &str) -> Vec<DirEntry> {
+        WalkDir::new(path)
             .min_depth(1)
             .max_depth(1)
             .into_iter()
@@ -45,9 +54,12 @@ impl MusicLibrary {
         }
     }
 
-    pub fn initialize(&mut self) -> Result<(), Error> {
-        let entries = self.entries();
-        let progress_bar = ProgressBar::new(entries.len() as u64);
+    pub fn load_path(&mut self, path: &str) -> Result<(), Error> {
+        self.set_path(path.to_string());
+        let entries = self.entries_in_path(path);
+        let entries_count = entries.len() as u64;
+        let initial_folders_count = self.folders.len();
+        let progress_bar = ProgressBar::new(entries_count.clone());
         let style = ProgressStyle::default_bar()
             .template("{msg:20!} {wide_bar} {pos}/{len}");
         progress_bar.set_style(style);
@@ -60,7 +72,15 @@ impl MusicLibrary {
 
         progress_bar.finish();
 
-        println!("{}", serde_json::to_string(&self)?);
+        println!("Processed {} folders in path", entries_count);
+        println!("Found {} new folders", self.folders.len() - initial_folders_count);
+
+        Ok(())
+    }
+
+    pub fn write_to_path(&self, path: &str) -> Result<(), Error> {
+        let file = File::create(path)?;
+        serde_json::to_writer(file, &self)?;
         Ok(())
     }
 }

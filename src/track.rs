@@ -36,7 +36,7 @@ impl Track {
     pub fn new_from_path(path: PathBuf, id: u32) -> Option<Track> {
         let tag = match Tag::read_from_path(&path) {
             Ok(t) => t,
-            Err(_) => return None,
+            Err(_) => { println!("Errored on {:?}", path); return None; },
         };
 
         Some(Track::new_from_tag(&tag, path, id))

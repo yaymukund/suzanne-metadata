@@ -4,6 +4,7 @@ use walkdir::{DirEntry, Error, WalkDir};
 use serde::ser::{Serialize, Serializer};
 use serde::de::{Deserialize, Deserializer, SeqAccess, Visitor};
 
+#[derive(Debug)]
 pub struct TrackList {
     tracks: Vec<Track>,
 }
