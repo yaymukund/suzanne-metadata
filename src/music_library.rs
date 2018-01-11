@@ -3,6 +3,7 @@ use track_list::TrackList;
 use folder_list::FolderList;
 use indicatif::{ProgressBar, ProgressStyle};
 use serde_json;
+use std::ascii::AsciiExt;
 use std::io::Error;
 use std::fs::File;
 
@@ -65,7 +66,10 @@ impl MusicLibrary {
         progress_bar.set_style(style);
 
         for entry in entries {
-            progress_bar.set_message(entry.path().file_name().unwrap().to_str().unwrap());
+            let name = entry.path().file_name().unwrap().to_str().unwrap().to_string().clone();
+            if name.is_ascii() {
+                progress_bar.set_message(&name);
+            }
             self.load_entry(entry);
             progress_bar.inc(1);
         }
