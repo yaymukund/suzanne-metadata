@@ -1,5 +1,6 @@
-use id3::Tag;
+use id3::{self, Tag, Error, ErrorKind};
 use std::path::PathBuf;
+use std::fs::File;
 
 const DEFAULT_TAG: &'static str = "?";
 
@@ -33,13 +34,23 @@ impl Track {
         }
     }
 
-    pub fn new_from_path(path: PathBuf, id: u32) -> Option<Track> {
-        let tag = match Tag::read_from_path(&path) {
-            Ok(t) => t,
-            Err(_) => { println!("Errored on {:?}", path); return None; },
-        };
+    pub fn new_from_path(path: PathBuf, id: u32) -> Result<Track, Error> {
+        let mut file = File::open(&path)?;
 
-        Some(Track::new_from_tag(&tag, path, id))
+        let tag;
+
+        if Tag::is_candidate(&mut file)? {
+            tag = Tag::read_from(file)?;
+        } else if id3::v1::Tag::is_candidate(&mut file)? {
+            tag = id3::v1::Tag::read_from(file)?.into();
+        } else {
+            return Err(Error {
+                description: "File doesn't contain id3v1 or id3v2 tags.",
+                kind: ErrorKind::NoTag,
+            });
+        }
+
+        Ok(Track::new_from_tag(&tag, path, id))
     }
 
     pub fn set_folder_id(&mut self, id: u32) {

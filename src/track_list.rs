@@ -1,6 +1,7 @@
 use std::fmt;
 use track::Track;
-use walkdir::{DirEntry, Error, WalkDir};
+use id3;
+use walkdir::{self, DirEntry, WalkDir};
 use serde::ser::{Serialize, Serializer};
 use serde::de::{Deserialize, Deserializer, SeqAccess, Visitor};
 
@@ -55,11 +56,11 @@ impl TrackList {
         self.last(count)
     }
 
-    fn add_track(&mut self, entry: &DirEntry) -> Result<(), ()> {
+    fn add_track(&mut self, entry: &DirEntry) -> Result<(), id3::Error> {
         let id = self.tracks.len() as u32;
         let path = entry.path().to_path_buf();
 
-        let track = Track::new_from_path(path, id).ok_or(())?;
+        let track = Track::new_from_path(path, id)?;
         self.tracks.push(track);
         Ok(())
     }
@@ -74,7 +75,7 @@ impl TrackList {
     }
 }
 
-fn mp3_path(entry_result: Result<DirEntry, Error>) -> Option<DirEntry> {
+fn mp3_path(entry_result: Result<DirEntry, walkdir::Error>) -> Option<DirEntry> {
     let filter_mp3 = |entry| if is_mp3(&entry) { Some(entry) } else { None };
     entry_result.ok().and_then(filter_mp3)
 }
