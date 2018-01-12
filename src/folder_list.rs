@@ -7,19 +7,13 @@ use serde::de::{Deserialize, Deserializer, SeqAccess, Visitor};
 #[derive(Debug)]
 pub struct FolderList {
     folders: Vec<Folder>,
-    path: Option<String>,
 }
 
 impl FolderList {
     pub fn new() -> FolderList {
         FolderList {
-            path: None,
             folders: Vec::new(),
         }
-    }
-
-    pub fn set_path(&mut self, path: String) {
-        self.path = Some(path);
     }
 
     pub fn push(&mut self, folder: Folder) -> &Folder {
@@ -29,28 +23,16 @@ impl FolderList {
 
     pub fn add_dir_entry(&mut self, entry: &DirEntry) -> &Folder {
         let folder_id = self.folders.len() as u32;
-        let folder = Folder::new(folder_id, entry, &self);
+        let folder = Folder::new(folder_id, entry);
         self.folders.push(folder);
         self.folders.last().unwrap()
     }
 
-    pub fn relative_path_to(&self, entry: &DirEntry) -> String {
-        let path = self.path.as_ref().expect(
-            "can't call folder_list.relative_path_to() before setting folder_list.path"
-        );
-
-        entry.path()
-            .strip_prefix(path)
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .to_string()
-    }
-
     pub fn has_entry(&self, entry: &DirEntry) -> bool {
-        let path: String = self.relative_path_to(entry);
+        let path = entry.path().to_str().unwrap();
+
         self.folders.iter()
-            .any(|folder| folder.get_path() == path)
+            .any(|folder| *folder.get_path() == *path)
     }
 
     pub fn len(&self) -> usize {

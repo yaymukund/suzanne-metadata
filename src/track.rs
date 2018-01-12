@@ -1,6 +1,7 @@
 use id3::{self, Tag, Error, ErrorKind};
 use std::path::PathBuf;
 use std::fs::File;
+use utils::strip_currentdir;
 
 const DEFAULT_TAG: &'static str = "?";
 
@@ -29,7 +30,7 @@ impl Track {
             artist: artist(&tag),
             date: date(&tag),
             track_number: track_number(&tag),
-            path: path.to_str().unwrap().to_string(),
+            path: strip_currentdir(&path),
             folder_id: None,
         }
     }

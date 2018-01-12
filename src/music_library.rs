@@ -26,10 +26,6 @@ impl MusicLibrary {
         serde_json::from_reader(file).unwrap()
     }
 
-    fn set_path(&mut self, path: String) {
-        self.folders.set_path(path);
-    }
-
     fn entries_in_path(&self, path: &str) -> Vec<DirEntry> {
         WalkDir::new(path)
             .min_depth(1)
@@ -56,7 +52,6 @@ impl MusicLibrary {
     }
 
     pub fn load_path(&mut self, path: &str) -> Result<(), Error> {
-        self.set_path(path.to_string());
         let entries = self.entries_in_path(path);
         let entries_count = entries.len() as u64;
         let initial_folders_count = self.folders.len();
