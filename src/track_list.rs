@@ -1,5 +1,5 @@
 use std::fmt;
-use track::Track;
+use track::{Track, TrackMetadata};
 use id3;
 use walkdir::{self, DirEntry, WalkDir};
 use serde::ser::{Serialize, Serializer};
@@ -30,6 +30,14 @@ impl TrackList {
     pub fn push(&mut self, track: Track) -> &Track {
         self.tracks.push(track);
         self.tracks.last().unwrap()
+    }
+
+    pub fn get_metadata_list(&self) -> Vec<TrackMetadata> {
+        self.tracks.iter().map(|t| t.metadata()).collect()
+    }
+
+    pub fn len(&self) -> usize {
+        self.tracks.len()
     }
 
     fn add_track_entry(&mut self, entry: &DirEntry) -> &mut[Track] {

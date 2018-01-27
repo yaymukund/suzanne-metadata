@@ -6,6 +6,10 @@ use serde_json;
 use std::ascii::AsciiExt;
 use std::io::Error;
 use std::fs::File;
+use std::path::Path;
+
+const FILENAME: &str = "metadata.json";
+const METADATA_FILENAME: &str = "metadata_index.json";
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct MusicLibrary {
@@ -77,9 +81,16 @@ impl MusicLibrary {
         Ok(())
     }
 
-    pub fn write_to_path(&self, path: &str) -> Result<(), Error> {
+    pub fn write_to_path(&self, outdir: &str) -> Result<(), Error> {
+        println!("Writing {} tracks and {} folders to {:?}", self.tracks.len(), self.folders.len(), outdir);
+        let path = Path::new(".").join(outdir).join(FILENAME);
         let file = File::create(path)?;
         serde_json::to_writer(file, &self)?;
+
+        let path = Path::new(".").join(outdir).join(METADATA_FILENAME);
+        let file = File::create(path)?;
+        serde_json::to_writer(file, &self.tracks.get_metadata_list())?;
+
         Ok(())
     }
 }

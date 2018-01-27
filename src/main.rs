@@ -21,16 +21,15 @@ mod utils;
 use clap::ArgMatches;
 use std::env;
 use std::path::Path;
+use music_library::MusicLibrary;
 
 fn main() {
     let args = get_args();
-    let mut music_library;
 
-    if let Some(metadata_file) = args.value_of("METADATA") {
-        music_library = music_library::MusicLibrary::new_from_file(metadata_file);
-    } else {
-        music_library = music_library::MusicLibrary::new();
-    }
+    let mut music_library = match args.value_of("METADATA") {
+        Some(f) if file_exists(f) => MusicLibrary::new_from_file(f),
+        _ => MusicLibrary::new(),
+    };
 
     let music_dir = Path::new(args.value_of("LIBRARY").unwrap());
     let prev_dir = env::current_dir().unwrap();
@@ -47,6 +46,10 @@ fn main() {
             Err(e) => println!("Errored writing file: {:?}", e),
         }
     }
+}
+
+fn file_exists(maybe_file: &str) -> bool {
+    Path::new(maybe_file).exists()
 }
 
 fn get_args<'a>() -> ArgMatches<'a> {

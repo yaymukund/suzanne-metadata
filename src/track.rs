@@ -21,6 +21,12 @@ pub struct Track {
     folder_id: Option<u32>,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TrackMetadata {
+    id: u32,
+    search: String,
+}
+
 impl Track {
     pub fn new_from_tag(tag: &Tag, path: PathBuf, id: u32) -> Track {
         Track {
@@ -56,6 +62,13 @@ impl Track {
 
     pub fn set_folder_id(&mut self, id: u32) {
         self.folder_id = Some(id.clone());
+    }
+
+    pub fn metadata(&self) -> TrackMetadata {
+        TrackMetadata {
+            id: self.id,
+            search: format!("{}|{}|{}", self.title, self.album, self.artist),
+        }
     }
 }
 
