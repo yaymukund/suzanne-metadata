@@ -2,6 +2,7 @@ use id3::{self, Tag, Error, ErrorKind};
 use std::path::PathBuf;
 use std::fs::File;
 use utils::strip_currentdir;
+use mp3_duration;
 
 const DEFAULT_TAG: &'static str = "?";
 
@@ -17,6 +18,7 @@ pub struct Track {
     artist: String,
     date: String,
     track_number: String,
+    duration: String,
     path: String,
     folder_id: Option<u32>,
 }
@@ -36,6 +38,7 @@ impl Track {
             artist: artist(&tag),
             date: date(&tag),
             track_number: track_number(&tag),
+            duration: duration(&tag, &path),
             path: strip_currentdir(&path),
             folder_id: None,
         }
@@ -95,6 +98,12 @@ fn date(tag: &Tag) -> String {
         .map_or_else(unknown_tag, |d| d.to_string())
 }
 
+fn duration(tag: &Tag, path: &PathBuf) -> String {
+    tag.duration()
+        .or_else(|| read_duration_from_file(&path))
+        .map_or_else(unknown_tag, |d| d.to_string())
+}
+
 fn track_number(tag: &Tag) -> String {
     let track = tag.track()
         .map_or_else(unknown_tag, |t| t.to_string());
@@ -104,4 +113,10 @@ fn track_number(tag: &Tag) -> String {
     } else {
         track
     }
+}
+
+fn read_duration_from_file(path: &PathBuf) -> Option<u32> {
+    mp3_duration::from_path(&path)
+        .map(|d| d.as_secs() as u32)
+        .ok()
 }

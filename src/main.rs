@@ -7,6 +7,7 @@ extern crate indicatif;
 extern crate filetime;
 extern crate serde;
 extern crate serde_json;
+extern crate mp3_duration;
 
 #[macro_use]
 extern crate serde_derive;
