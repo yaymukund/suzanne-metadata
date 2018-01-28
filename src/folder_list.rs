@@ -3,6 +3,7 @@ use folder::Folder;
 use serde::ser::{Serialize, Serializer};
 use std::fmt;
 use serde::de::{Deserialize, Deserializer, SeqAccess, Visitor};
+use utils::strip_currentdir;
 
 #[derive(Debug)]
 pub struct FolderList {
@@ -29,7 +30,7 @@ impl FolderList {
     }
 
     pub fn has_entry(&self, entry: &DirEntry) -> bool {
-        let path = entry.path().to_str().unwrap();
+        let path = strip_currentdir(entry.path());
 
         self.folders.iter()
             .any(|folder| *folder.get_path() == *path)
