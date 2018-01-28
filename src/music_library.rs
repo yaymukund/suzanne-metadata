@@ -27,7 +27,9 @@ impl MusicLibrary {
 
     pub fn new_from_file(metadata_file: &str) -> MusicLibrary {
         let file = File::open(metadata_file).unwrap();
-        serde_json::from_reader(file).unwrap()
+        let library: MusicLibrary = serde_json::from_reader(file).unwrap();
+        println!("Loaded {} tracks from file", library.tracks.len());
+        library
     }
 
     fn entries_in_path(&self, path: &str) -> Vec<DirEntry> {
