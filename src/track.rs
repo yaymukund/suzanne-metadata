@@ -109,8 +109,8 @@ fn track_number(tag: &Tag) -> String {
     let track = tag.track()
         .map_or_else(unknown_tag, |t| t.to_string());
 
-    if let Some(total) = tag.total_tracks() {
-        format!("{}/{}", track, total)
+    if let Some(disc) = tag.disc() {
+        format!("{}.{}", disc, track)
     } else {
         track
     }
