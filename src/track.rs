@@ -100,6 +100,7 @@ fn date(tag: &Tag) -> String {
 
 fn duration(tag: &Tag, path: &PathBuf) -> String {
     tag.duration()
+        .and_then(|d| Some((d + 999)/1000)) // Convert ms to s, rounding up
         .or_else(|| read_duration_from_file(&path))
         .map_or_else(unknown_tag, |d| d.to_string())
 }
