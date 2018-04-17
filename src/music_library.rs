@@ -67,6 +67,7 @@ impl MusicLibrary {
         progress_bar.set_style(style);
 
         for entry in entries {
+            debug!("Processing entry: {:?}", entry.path());
             let name = entry.path().file_name().unwrap().to_str().unwrap().to_string().clone();
             if name.is_ascii() {
                 progress_bar.set_message(&name);
