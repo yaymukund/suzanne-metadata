@@ -1,7 +1,8 @@
-use std::fs;
-use walkdir::DirEntry;
 use filetime::FileTime;
+use std::convert::TryInto;
+use std::fs;
 use utils::strip_currentdir;
+use walkdir::DirEntry;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Folder {
@@ -13,7 +14,8 @@ pub struct Folder {
 impl Folder {
     pub fn new(id: u32, entry: &DirEntry) -> Folder {
         let metadata = fs::metadata(entry.path()).unwrap();
-        let created_at = FileTime::from_last_modification_time(&metadata).seconds_relative_to_1970();
+        let created_at = FileTime::from_last_modification_time(&metadata).unix_seconds();
+        let created_at = created_at.try_into().unwrap();
         let path = strip_currentdir(entry.path());
 
         Folder {

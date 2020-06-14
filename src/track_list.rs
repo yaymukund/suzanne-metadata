@@ -1,9 +1,9 @@
+use id3;
+use serde::de::{Deserialize, Deserializer, SeqAccess, Visitor};
+use serde::ser::{Serialize, Serializer};
 use std::fmt;
 use track::{Track, TrackMetadata};
-use id3;
 use walkdir::{self, DirEntry, WalkDir};
-use serde::ser::{Serialize, Serializer};
-use serde::de::{Deserialize, Deserializer, SeqAccess, Visitor};
 
 #[derive(Debug)]
 pub struct TrackList {
@@ -12,12 +12,10 @@ pub struct TrackList {
 
 impl TrackList {
     pub fn new() -> TrackList {
-        TrackList {
-            tracks: Vec::new(),
-        }
+        TrackList { tracks: Vec::new() }
     }
 
-    pub fn add_dir_entry(&mut self, entry: &DirEntry) -> &mut[Track] {
+    pub fn add_dir_entry(&mut self, entry: &DirEntry) -> &mut [Track] {
         if is_mp3(entry) {
             self.add_track_entry(entry)
         } else if is_dir(entry) {
@@ -40,7 +38,7 @@ impl TrackList {
         self.tracks.len()
     }
 
-    fn add_track_entry(&mut self, entry: &DirEntry) -> &mut[Track] {
+    fn add_track_entry(&mut self, entry: &DirEntry) -> &mut [Track] {
         let result = self.add_track(entry);
         if result.is_ok() {
             self.last(1)
@@ -49,10 +47,8 @@ impl TrackList {
         }
     }
 
-    fn add_folder_entry(&mut self, entry: &DirEntry) -> &mut[Track] {
-        let entries = WalkDir::new(entry.path())
-            .into_iter()
-            .filter_map(mp3_path);
+    fn add_folder_entry(&mut self, entry: &DirEntry) -> &mut [Track] {
+        let entries = WalkDir::new(entry.path()).into_iter().filter_map(mp3_path);
         let mut count = 0;
 
         for entry in entries {
@@ -73,12 +69,12 @@ impl TrackList {
         Ok(())
     }
 
-    fn last(&mut self, count: usize) -> &mut[Track] {
+    fn last(&mut self, count: usize) -> &mut [Track] {
         let len = self.tracks.len();
-        &mut self.tracks[len-count..]
+        &mut self.tracks[len - count..]
     }
 
-    fn empty_slice(&mut self) -> &mut[Track] {
+    fn empty_slice(&mut self) -> &mut [Track] {
         self.last(0)
     }
 }
@@ -93,13 +89,13 @@ fn is_dir(entry: &DirEntry) -> bool {
 }
 
 fn is_mp3(entry: &DirEntry) -> bool {
-    entry.path().extension()
-        .and_then(|ext| ext.to_str()) == Some("mp3")
+    entry.path().extension().and_then(|ext| ext.to_str()) == Some("mp3")
 }
 
 impl Serialize for TrackList {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         self.tracks.serialize(serializer)
     }
@@ -115,7 +111,8 @@ impl<'de> Visitor<'de> for TrackListVisitor {
     }
 
     fn visit_seq<S>(self, mut seq: S) -> Result<Self::Value, S::Error>
-            where S: SeqAccess<'de>
+    where
+        S: SeqAccess<'de>,
     {
         let mut track_list = TrackList::new();
         while let Some(track) = seq.next_element()? {
@@ -128,7 +125,8 @@ impl<'de> Visitor<'de> for TrackListVisitor {
 
 impl<'de> Deserialize<'de> for TrackList {
     fn deserialize<D>(deserializer: D) -> Result<TrackList, D::Error>
-        where D: Deserializer<'de>
+    where
+        D: Deserializer<'de>,
     {
         deserializer.deserialize_seq(TrackListVisitor)
     }

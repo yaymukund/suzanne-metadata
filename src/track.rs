@@ -1,10 +1,10 @@
-use id3::{self, Tag, Error, ErrorKind};
-use std::path::PathBuf;
-use std::fs::File;
-use utils::strip_currentdir;
+use id3::{self, Error, ErrorKind, Tag};
 use mp3_duration;
+use std::fs::File;
+use std::path::PathBuf;
+use utils::strip_currentdir;
 
-const DEFAULT_TAG: &'static str = "?";
+const DEFAULT_TAG: &str = "?";
 
 fn unknown_tag() -> String {
     DEFAULT_TAG.to_string()
@@ -57,6 +57,7 @@ impl Track {
             return Err(Error {
                 description: "File doesn't contain id3v1 or id3v2 tags.",
                 kind: ErrorKind::NoTag,
+                partial_tag: None,
             });
         }
 
@@ -64,7 +65,7 @@ impl Track {
     }
 
     pub fn set_folder_id(&mut self, id: u32) {
-        self.folder_id = Some(id.clone());
+        self.folder_id = Some(id);
     }
 
     pub fn metadata(&self) -> TrackMetadata {
@@ -76,13 +77,11 @@ impl Track {
 }
 
 fn title(tag: &Tag) -> String {
-    tag.title()
-        .map_or_else(unknown_tag, String::from)
+    tag.title().map_or_else(unknown_tag, String::from)
 }
 
 fn album(tag: &Tag) -> String {
-    tag.album()
-        .map_or_else(unknown_tag, String::from)
+    tag.album().map_or_else(unknown_tag, String::from)
 }
 
 fn artist(tag: &Tag) -> String {
@@ -100,14 +99,13 @@ fn date(tag: &Tag) -> String {
 
 fn duration(tag: &Tag, path: &PathBuf) -> String {
     tag.duration()
-        .and_then(|d| Some((d + 999)/1000)) // Convert ms to s, rounding up
+        .map(|d| (d + 999) / 1000) // Convert ms to s, rounding up
         .or_else(|| read_duration_from_file(&path))
         .map_or_else(unknown_tag, |d| d.to_string())
 }
 
 fn track_number(tag: &Tag) -> String {
-    let track = tag.track()
-        .map_or_else(unknown_tag, |t| t.to_string());
+    let track = tag.track().map_or_else(unknown_tag, |t| t.to_string());
 
     if let Some(disc) = tag.disc() {
         format!("{}.{}", disc, track)

@@ -1,9 +1,9 @@
-use walkdir::DirEntry;
 use folder::Folder;
+use serde::de::{Deserialize, Deserializer, SeqAccess, Visitor};
 use serde::ser::{Serialize, Serializer};
 use std::fmt;
-use serde::de::{Deserialize, Deserializer, SeqAccess, Visitor};
 use utils::strip_currentdir;
+use walkdir::DirEntry;
 
 #[derive(Debug)]
 pub struct FolderList {
@@ -32,7 +32,8 @@ impl FolderList {
     pub fn has_entry(&self, entry: &DirEntry) -> bool {
         let path = strip_currentdir(entry.path());
 
-        self.folders.iter()
+        self.folders
+            .iter()
             .any(|folder| *folder.get_path() == *path)
     }
 
@@ -51,7 +52,8 @@ impl<'de> Visitor<'de> for FolderListVisitor {
     }
 
     fn visit_seq<S>(self, mut seq: S) -> Result<Self::Value, S::Error>
-            where S: SeqAccess<'de>
+    where
+        S: SeqAccess<'de>,
     {
         let mut folder_list = FolderList::new();
         while let Some(folder) = seq.next_element()? {
@@ -64,7 +66,8 @@ impl<'de> Visitor<'de> for FolderListVisitor {
 
 impl<'de> Deserialize<'de> for FolderList {
     fn deserialize<D>(deserializer: D) -> Result<FolderList, D::Error>
-        where D: Deserializer<'de>
+    where
+        D: Deserializer<'de>,
     {
         deserializer.deserialize_seq(FolderListVisitor)
     }
@@ -72,7 +75,8 @@ impl<'de> Deserialize<'de> for FolderList {
 
 impl Serialize for FolderList {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer
+    where
+        S: Serializer,
     {
         self.folders.serialize(serializer)
     }

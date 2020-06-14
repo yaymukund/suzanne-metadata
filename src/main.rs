@@ -5,28 +5,28 @@ extern crate clap;
 extern crate log;
 
 extern crate env_logger;
-extern crate walkdir;
+extern crate filetime;
 extern crate id3;
 extern crate indicatif;
-extern crate filetime;
+extern crate mp3_duration;
 extern crate serde;
 extern crate serde_json;
-extern crate mp3_duration;
+extern crate walkdir;
 
 #[macro_use]
 extern crate serde_derive;
 
-mod track;
-mod track_list;
 mod folder;
 mod folder_list;
 mod music_library;
+mod track;
+mod track_list;
 mod utils;
 
 use clap::ArgMatches;
+use music_library::MusicLibrary;
 use std::env;
 use std::path::Path;
-use music_library::MusicLibrary;
 
 fn main() {
     env_logger::init();
@@ -66,5 +66,6 @@ fn get_args<'a>() -> ArgMatches<'a> {
         (@arg LIBRARY: -l --library +required +takes_value "Path to the music directory")
         (@arg METADATA: -m --metadata +takes_value "Path to the metadata file")
         (@arg OUTPATH: -o --output +takes_value "Path to output directory")
-    ).get_matches()
+    )
+    .get_matches()
 }

@@ -1,12 +1,11 @@
-use walkdir::{WalkDir, DirEntry};
-use track_list::TrackList;
 use folder_list::FolderList;
 use indicatif::{ProgressBar, ProgressStyle};
 use serde_json;
-use std::ascii::AsciiExt;
-use std::io::Error;
 use std::fs::File;
+use std::io::Error;
 use std::path::Path;
+use track_list::TrackList;
+use walkdir::{DirEntry, WalkDir};
 
 const FILENAME: &str = "metadata.json";
 const METADATA_FILENAME: &str = "metadata_index.json";
@@ -61,14 +60,20 @@ impl MusicLibrary {
         let entries = self.entries_in_path(path);
         let entries_count = entries.len() as u64;
         let initial_folders_count = self.folders.len();
-        let progress_bar = ProgressBar::new(entries_count.clone());
-        let style = ProgressStyle::default_bar()
-            .template("{msg:20!} {wide_bar} {pos}/{len}");
+        let progress_bar = ProgressBar::new(entries_count);
+        let style = ProgressStyle::default_bar().template("{msg:20!} {wide_bar} {pos}/{len}");
         progress_bar.set_style(style);
 
         for entry in entries {
             debug!("Processing entry: {:?}", entry.path());
-            let name = entry.path().file_name().unwrap().to_str().unwrap().to_string().clone();
+            let name = entry
+                .path()
+                .file_name()
+                .unwrap()
+                .to_str()
+                .unwrap()
+                .to_string()
+                .clone();
             if name.is_ascii() {
                 progress_bar.set_message(&name);
             }
@@ -79,13 +84,21 @@ impl MusicLibrary {
         progress_bar.finish();
 
         println!("Processed {} folders in path", entries_count);
-        println!("Found {} new folders", self.folders.len() - initial_folders_count);
+        println!(
+            "Found {} new folders",
+            self.folders.len() - initial_folders_count
+        );
 
         Ok(())
     }
 
     pub fn write_to_path(&self, outdir: &str) -> Result<(), Error> {
-        println!("Writing {} tracks and {} folders to {:?}", self.tracks.len(), self.folders.len(), outdir);
+        println!(
+            "Writing {} tracks and {} folders to {:?}",
+            self.tracks.len(),
+            self.folders.len(),
+            outdir
+        );
         let path = Path::new(".").join(outdir).join(FILENAME);
         let file = File::create(path)?;
         serde_json::to_writer(file, &self)?;
